@@ -41,6 +41,7 @@ export class Room {
       log.warn('name already ranked', { name, roomCode: this._code});
       return null;
     }
+    this._namesRanked.push(name);
     this.ranks.push({name, timestamp});
     this.ranks = this.ranks.sort((a, b) => a.timestamp - b.timestamp);
     return this.ranks;
@@ -105,6 +106,7 @@ wss.on('connection', (ws, req) => {
     log.info(`Client disconnected from room ${roomCode}`);
     clientMap[roomCode] = clientMap[roomCode].filter((client) => client !== ws);
     if (!clientMap[roomCode].length) {
+      log.info('Purging up empty room', { roomCode })
       delete clientMap[roomCode];
       delete roomMap[roomCode];
       roomCount--;
