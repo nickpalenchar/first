@@ -13,10 +13,11 @@ import { log } from '../logging.mjs';
  * @returns {BuzzinBody}
  */
 const validateBuzzinBody = (msg) => {
+  log.info(msg)
   if (typeof msg.timestamp !== 'number') {
     throw new Error('incorrect type for body.timestamp');
   }
-  if (typeof msg.timestamp !== 'string') {
+  if (typeof msg.name !== 'string') {
     throw new Error('incorrect type for body.name');
   }
   return msg;
@@ -36,12 +37,45 @@ export const buzzin = (msg, room, ws) => {
   if (room.state === 'standby') {
     // you might be the f1rst!
     room.addRank(name, timestamp);
+    // STATE 1: Entered input, show no results.
     room.state = 'buzzed-waiting';
+    room.broadcast({
+      type: 'broadcast',
+      action: 'STATE_CHANGE',
+      body: { state: 'buzzed-waiting' }
+    }, null);
+    setTimeout(() => {
+      // STATE 2: show preliminary results (they may still change)
+      room.state = 'buzzed-prelim';
+      room.broadcast({
+        type: 'broadcast',
+        action: 'STATE_CHANGE',
+        body: { state: 'buzzed-prelim', ranks: room.ranks }
+      }, null);
+      setTimeout(() => {
+        // STATE 3: show final results
+        room.state = 'buzzed-resolved';
+        room.broadcast({
+          type: 'broadcast',
+          action: 'STATE_CHANGE',
+          body: { state: 'buzzed-resolved', ranks: room.ranks },
+        }, null);
+      }, 600);
+    }, 360);
+  } else if (room.state === 'buzzed-prelim' || room.state === 'buzzed-waiting') {
+    const added = room.addRank(name, timestamp);
+    if (added) {
+      room.broadcast({
+        type: 'broadcast',
+        action: 'NEW_RANKS',
+        body: { ranks: room.ranks }
+      }, null)
+    }
   }
     // discard
     return {
       type: 'silent',
+      action: null,
       body: {}
     }
-
 } 

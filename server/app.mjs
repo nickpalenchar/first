@@ -17,25 +17,50 @@ const roomMap = {};
 let roomCount = 0;
 
 export class Room {
-  /** @type {'standby' | 'buzzed-waiting' | 'buzzed-resolved'} */
+  code;
+  /** @type {'standby' | 'buzzed-waiting' | 'buzzed-prelim' | 'buzzed-resolved'} */
   state;
   /** @type {Array<{name: string, timestamp: number}>} */
   ranks;
+  /** @type {Array<string>} */
+  _namesRanked;
 
-  constructor() {
+  constructor(code) {
+    this._code = code;
     this.state = 'standby';
     this.ranks = [];
+    this._namesRanked = [];
   }
-
   /**
    * 
    * @param {string} name 
    * @param {number} timestamp 
    */
   addRank(name, timestamp) {
+    if(this._namesRanked.includes(name)) {
+      log.warn('name already ranked', { name, roomCode: this._code});
+      return null;
+    }
     this.ranks.push({name, timestamp});
     this.ranks = this.ranks.sort((a, b) => a.timestamp - b.timestamp);
     return this.ranks;
+  }
+  reset() {
+    this._namesRanked = [];
+    this.ranks = [];
+  }
+
+  /**
+   * @param {import('./types/OutMessage.mjs').OutMessage} msg 
+   * @param {*} ws 
+   */
+  broadcast(msg, ws) {
+    log.info('looking for ' + this._code);
+    clientMap[this._code].forEach((client) => {
+      if (client !== ws && client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(msg));
+      }
+    });
   }
 }
 
@@ -54,7 +79,7 @@ wss.on('connection', (ws, req) => {
   }
   // Create a new room if it doesn't exist
   if (!clientMap[roomCode]) {
-    const room = new Room();
+    const room = new Room(roomCode);
     roomMap[roomCode] = room;
     clientMap[roomCode] = [];
     roomCount += 1;
