@@ -1,8 +1,13 @@
-import WebSocket from 'ws';
+import WebSocket, { WebSocketServer } from 'ws';
 import http from 'http';
 import express from 'express';
 import path from 'path';
 import winston from 'winston';
+import { fileURLToPath } from 'url';
+import { processMessage } from './messages/index.mjs';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 
 const log = winston.createLogger({
   level: 'info',
@@ -14,10 +19,19 @@ const log = winston.createLogger({
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocketServer({ server });
 
 const roomMap = {};
 let roomCount = 0;
+
+class Room {
+  constructor(id) {
+    if (!roomMap[id]) {
+      roomMap[id] = [];
+      roomCount += 1;
+    }
+  }
+}
 
 app.get('/:roomCode', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
@@ -27,7 +41,8 @@ wss.on('connection', (ws, req) => {
   const roomCode = req.url.substring(1); // Extract room code from the URL
 
   if (roomCount > 99) {
-    ws.send(JSON.stringify({ error: 'Server is at max capacity.'}))
+    log.error('Refusing new connection; socket at max capacity')
+    ws.send(JSON.stringify({ error: 'Server is at max capacity.' }))
     ws.close();
     return;
   }
@@ -44,11 +59,12 @@ wss.on('connection', (ws, req) => {
   ws.on('message', (message) => {
     log.info(`Received in room ${roomCode}: ${message}`);
 
-    roomMap[roomCode].forEach((client) => {
-      if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(`Room ${roomCode}: ${message}`);
-      }
-    });
+    const result = processMessage(message.toString());
+    if ('error' in result) {
+      log.error('websocket error:', result.error);
+    }
+    ws.send(JSON.stringify(result));
+    return;
   });
 
   ws.on('close', () => {

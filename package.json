@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "onchange -i -k server/** -- npm start",
+    "start": "node --experimental-modules server/app.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -13,5 +15,8 @@
     "express": "^4.18.2",
     "winston": "^3.11.0",
     "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "onchange": "^7.1.0"
   }
 }
