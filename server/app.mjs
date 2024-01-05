@@ -38,7 +38,7 @@ app.get('/:roomCode', (req, res) => {
 });
 
 wss.on('connection', (ws, req) => {
-  const roomCode = req.url.substring(1); // Extract room code from the URL
+  const roomCode = req.url.substring(1);
 
   if (roomCount > 99) {
     log.error('Refusing new connection; socket at max capacity')
