@@ -37,6 +37,26 @@
         messageInput.value = '';
       }
     }
+
+    document.getElementById('name').addEventListener('click', function() {
+      highlightContent(this);
+    });
+  
+    function highlightContent(element) {
+      // Check if the element is a contenteditable div
+      if (element.isContentEditable) {
+        // Create a Range object
+        var range = document.createRange();
+        
+        // Select the entire contents of the div
+        range.selectNodeContents(element);
+  
+        // Create a Selection object and add the Range to it
+        var selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
   </script>
   <style>
     #name {
