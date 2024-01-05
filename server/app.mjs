@@ -2,34 +2,40 @@ import WebSocket, { WebSocketServer } from 'ws';
 import http from 'http';
 import express from 'express';
 import path from 'path';
-import winston from 'winston';
 import { fileURLToPath } from 'url';
 import { processMessage } from './messages/index.mjs';
+import { log } from './logging.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-
-const log = winston.createLogger({
-  level: 'info',
-  format: winston.format.json(),
-  transports: [
-    new winston.transports.Console(),
-  ]
-});
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
+const clientMap = {};
 const roomMap = {};
 let roomCount = 0;
 
-class Room {
-  constructor(id) {
-    if (!roomMap[id]) {
-      roomMap[id] = [];
-      roomCount += 1;
-    }
+export class Room {
+  /** @type {'standby' | 'buzzed-waiting' | 'buzzed-resolved'} */
+  state;
+  /** @type {Array<{name: string, timestamp: number}>} */
+  ranks;
+
+  constructor() {
+    this.state = 'standby';
+    this.ranks = [];
+  }
+
+  /**
+   * 
+   * @param {string} name 
+   * @param {number} timestamp 
+   */
+  addRank(name, timestamp) {
+    this.ranks.push({name, timestamp});
+    this.ranks = this.ranks.sort((a, b) => a.timestamp - b.timestamp);
+    return this.ranks;
   }
 }
 
@@ -47,19 +53,22 @@ wss.on('connection', (ws, req) => {
     return;
   }
   // Create a new room if it doesn't exist
-  if (!roomMap[roomCode]) {
-    roomMap[roomCode] = [];
+  if (!clientMap[roomCode]) {
+    const room = new Room();
+    roomMap[roomCode] = room;
+    clientMap[roomCode] = [];
     roomCount += 1;
   }
 
-  roomMap[roomCode].push(ws);
+  clientMap[roomCode].push(ws);
 
   log.info(`Client connected to room ${roomCode}`);
 
   ws.on('message', (message) => {
     log.info(`Received in room ${roomCode}: ${message}`);
+    const room = roomMap[roomCode];
 
-    const result = processMessage(message.toString());
+    const result = processMessage(message.toString(), room, ws);
     if ('error' in result) {
       log.error('websocket error:', result.error);
     }
@@ -69,8 +78,9 @@ wss.on('connection', (ws, req) => {
 
   ws.on('close', () => {
     log.info(`Client disconnected from room ${roomCode}`);
-    roomMap[roomCode] = roomMap[roomCode].filter((client) => client !== ws);
-    if (!roomMap[roomCode].length) {
+    clientMap[roomCode] = clientMap[roomCode].filter((client) => client !== ws);
+    if (!clientMap[roomCode].length) {
+      delete clientMap[roomCode];
       delete roomMap[roomCode];
       roomCount--;
     }

@@ -1,9 +1,12 @@
+import { WebSocket } from "ws";
 import { buzzin } from "./buzzin.mjs";
+
+/** @typedef {import("../types/InMessage.mjs").InMessage} InMessage*/
 
 /**
  * 
  * @param {*} message
- * @returns {{ type: string, body: string }} body
+ * @returns {InMessage} body
  */
 const validateMessage = (message) => {
   if (!message.type) {
@@ -17,13 +20,15 @@ const validateMessage = (message) => {
 
 /**
  * @param {string} msg 
+ * @param {import("../app.mjs").Room} room
+ * @param {WebSocket} ws
  */
-export const processMessage = (msg) => {
+export const processMessage = (msg, room, ws) => {
   try {
     const message = validateMessage(JSON.parse(msg));
 
     if (message.type === 'buzzin') {
-      return buzzin(message.body);
+      return buzzin(message.body, room, ws);
     }
 
   } catch (e) {
