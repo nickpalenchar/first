@@ -4,14 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>F1rst</title>
+  <script
+  src="https://code.jquery.com/jquery-3.7.1.slim.min.js"
+  integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8="
+  crossorigin="anonymous"></script>
 </head>
 <body>
+  <div id="numPlayers" contenteditable="" style="display: inline-block;"></div>
   <div id="name" contenteditable="" style="display: inline-block;">Player 1</div>
-  <input type="text" id="messageInput" placeholder="Type a message">
-  <button onclick="sendMessage()">Send Message</button>
+  <div id="buzzin">
+    <button style="height: 400px; width: 400px; border-radius: 400px; font-size: 128px;" onclick="sendMessage()">☢️</button>
+  </div>
+  <div id="rankings" style="display: none;">
+  </div>
   <div id="output"></div>
-
   <script>
+    const name = window.localStorage.getItem('firstname');
+
+    const $buzzin = $('#buzzin');
+    const $rankings = $('#rankings');
+
+    if (!name) {
+      const data = prompt("Enter Name:");
+      window.localStorage.setItem('firstname', data);
+      document.getElementById('name').innerText = data;
+    }
     const socket = new WebSocket('ws://localhost:3000' + window.location.pathname);
     console.log('socket!', socket);
     socket.addEventListener('open', (event) => {
@@ -19,9 +36,38 @@
     });
 
     socket.addEventListener('message', (event) => {
-      console.log('goti t');
+      console.log('got it');
       const outputDiv = document.getElementById('output');
       outputDiv.innerHTML = `Server says: ${event.data}`;
+      const message = JSON.parse(event.data);
+      if (!message.action) {
+        console.error('missing action');
+        return;
+      }
+      if (message.action === 'numPlayers') {
+        console.log(message)
+        document.getElementById('numPlayers').innerHTML = message.body.numPlayers;
+      }
+      if (message.action === 'STATE_CHANGE') {
+        const { state, ranks } = message.body;
+        if (state === 'buzzed-prelim') {
+          $buzzin.hide();
+          $rankings.show();
+
+          const board = $('<div>');
+          const firstTime = ranks[0].timestamp;
+          for (const rank of ranks ) {
+            console.log({rank});
+            const renderedRank = $('<div>').text(`${rank.name} (${firstTime - rank.timestamp})`);
+              board.append(renderedRank);
+          }
+          $rankings.html(board);
+        }
+        if (state === 'buzzed-resolved') {
+          $buzzin.hide();
+          $rankings.show();
+        }
+      }
     });
 
     socket.addEventListener('close', (event) => {
@@ -29,6 +75,7 @@
     });
 
     function sendMessage() {
+      $buzzin.hide();
       const name = document.getElementById('name').innerHTML;
       const timestamp = Date.now();
 

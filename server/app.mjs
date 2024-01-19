@@ -17,7 +17,8 @@ const roomMap = {};
 let roomCount = 0;
 
 export class Room {
-  code;
+  /** @type {string} */
+  _code;
   /** @type {'standby' | 'buzzed-waiting' | 'buzzed-prelim' | 'buzzed-resolved'} */
   state;
   /** @type {Array<{name: string, timestamp: number}>} */
@@ -30,6 +31,10 @@ export class Room {
     this.state = 'standby';
     this.ranks = [];
     this._namesRanked = [];
+  }
+  /** @returns {number} */
+  get numPlayers() {
+    return clientMap[this._code].length;
   }
   /**
    * 
@@ -87,6 +92,16 @@ wss.on('connection', (ws, req) => {
   }
 
   clientMap[roomCode].push(ws);
+
+  /** @type {import('./types/OutMessage.mjs').OutMessage} */
+  const startMessage = {
+    type: 'response',
+    action: 'numPlayers',
+    body: {
+      numPlayers: roomMap[roomCode].numPlayers,
+    }
+  }
+  ws.send(JSON.stringify(startMessage));
 
   log.info(`Client connected to room ${roomCode}`);
 
