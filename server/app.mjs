@@ -13,6 +13,7 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
 const clientMap = {};
+/** @type {Object<string, Room>} */
 const roomMap = {};
 let roomCount = 0;
 
@@ -58,7 +59,7 @@ export class Room {
 
   /**
    * @param {import('./types/OutMessage.mjs').OutMessage} msg 
-   * @param {*} ws 
+   * @param {*} ws pass null to broadcast to all, or ws to ignore that ws client
    */
   broadcast(msg, ws) {
     log.info('looking for ' + this._code);
@@ -95,13 +96,14 @@ wss.on('connection', (ws, req) => {
 
   /** @type {import('./types/OutMessage.mjs').OutMessage} */
   const startMessage = {
-    type: 'response',
+    type: 'broadcast',
     action: 'numPlayers',
     body: {
       numPlayers: roomMap[roomCode].numPlayers,
     }
   }
   ws.send(JSON.stringify(startMessage));
+  roomMap[roomCode].broadcast(startMessage, ws);
 
   log.info(`Client connected to room ${roomCode}`);
 

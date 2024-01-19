@@ -1,5 +1,6 @@
 import { WebSocket } from "ws";
 import { buzzin } from "./buzzin.mjs";
+import { restart } from "./restart.mjs";
 
 /** @typedef {import("../types/InMessage.mjs").InMessage} InMessage*/
 
@@ -29,6 +30,10 @@ export const processMessage = (msg, room, ws) => {
 
     if (message.type === 'buzzin') {
       return buzzin(message.body, room, ws);
+    }
+
+    if (message.type === 'restart') {
+      return restart(message.body, room, ws);
     }
 
   } catch (e) {

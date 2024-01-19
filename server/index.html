@@ -17,19 +17,25 @@
   </div>
   <div id="rankings" style="display: none;">
   </div>
+  <div id="restart" style="display: none;"><button onclick="restart()">Reset</button></div>
   <div id="output"></div>
   <script>
     const name = window.localStorage.getItem('firstname');
 
     const $buzzin = $('#buzzin');
     const $rankings = $('#rankings');
+    const $restart = $('#restart');
 
     if (!name) {
       const data = prompt("Enter Name:");
       window.localStorage.setItem('firstname', data);
-      document.getElementById('name').innerText = data;
+      $('#name').text(data);
+    } else {
+      $('#name').text(name);
     }
-    const socket = new WebSocket('ws://localhost:3000' + window.location.pathname);
+    const domain = new URL(window.location.href).hostname;
+    const port = window.location.port ? ':' + window.location.port : '';
+    const socket = new WebSocket('ws://' + domain + port + window.location.pathname);
     console.log('socket!', socket);
     socket.addEventListener('open', (event) => {
       console.log('Connected to WebSocket server');
@@ -48,24 +54,32 @@
         console.log(message)
         document.getElementById('numPlayers').innerHTML = message.body.numPlayers;
       }
+      if (message.action === 'restart') {
+        console.log('restarting');
+        $buzzin.show();
+        $rankings.hide();
+        $rankings.html('');
+        $restart.hide();
+        return;
+      }
+      if (message.action === 'NEW_RANKS') {
+        const { ranks } = message.body;
+        console.log('updating rakns from NEW_RANKS', ranks);
+        updateRankings(ranks, $rankings);
+      }
+
       if (message.action === 'STATE_CHANGE') {
         const { state, ranks } = message.body;
         if (state === 'buzzed-prelim') {
-          $buzzin.hide();
           $rankings.show();
 
-          const board = $('<div>');
-          const firstTime = ranks[0].timestamp;
-          for (const rank of ranks ) {
-            console.log({rank});
-            const renderedRank = $('<div>').text(`${rank.name} (${firstTime - rank.timestamp})`);
-              board.append(renderedRank);
-          }
-          $rankings.html(board);
+          updateRankings(ranks, $rankings);
         }
         if (state === 'buzzed-resolved') {
+          updateRankings(ranks, $rankings, { final: true });
           $buzzin.hide();
           $rankings.show();
+          $restart.show();
         }
       }
     });
@@ -73,6 +87,36 @@
     socket.addEventListener('close', (event) => {
       console.log('Disconnected from WebSocket server');
     });
+
+    function updateRankings(ranks, $rankings, { final = false } = {}) {
+      if (!ranks.length) {
+        return;
+      }
+      const board = $('<div>');
+        const firstTime = ranks[0].timestamp;
+        let place = 0;
+        for (const rank of ranks) {
+          place++;
+          console.log({rank});
+          let offsetTime = (firstTime - rank.timestamp) / 1000 * -1;
+          if (offsetTime === 0 ) {
+            offsetTime = '';
+          } else {
+            offsetTime = `(${offsetTime} late)`;
+          }
+          const renderedRank = $('<div>').html(`${final ? place + '. ': ''}${rank.name} <code>${offsetTime}</code>`);
+            board.append(renderedRank);
+        }
+        $rankings.html(board);
+    }
+
+    function restart() {
+      const message = {
+        type: 'restart',
+        body: {}
+      }
+      socket.send(JSON.stringify(message));
+    }
 
     function sendMessage() {
       $buzzin.hide();
@@ -112,6 +156,23 @@
       border-radius: 4px;
       min-width: 6em;
     }
+    #rankings div {
+      margin-bottom: 5px;
+      color: #333;
+      text-align: center;
+  }
+  #rankings div code {
+    font-size: 16px;
+  }
+
+  #rankings div:nth-child(1) {
+      font-size: 42px;
+  }
+
+  #rankings div:nth-child(n+2):nth-child(-n+4) {
+      /* Subsequent divs with decreasing font size, but no smaller after the 4th div */
+      font-size: calc(20px - 2px * (n - 2));
+  }
   </style>
 </body>
 </html>

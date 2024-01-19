@@ -45,7 +45,23 @@ export const buzzin = (msg, room, ws) => {
       body: { state: 'buzzed-waiting' }
     }, null);
     setTimeout(() => {
+      if (room.state === 'buzzed-resolved') {
+        return { type: 'silent' , action: null, body: {} };
+      }
+      console.log('ROOM?', { room });
       // STATE 2: show preliminary results (they may still change)
+      if (room.ranks.length === room.numPlayers) {
+        // jump straight to the end, this is the last result.
+        room.state = 'buzzed-resolved';
+        room.broadcast({
+          type: 'broadcast',
+          action: 'STATE_CHANGE',
+          body: {
+            state: 'buzzed-resolved', ranks: room.ranks,
+          }
+        }, null)
+        return { type: 'silent' , action: null, body: {} };
+      }
       room.state = 'buzzed-prelim';
       room.broadcast({
         type: 'broadcast',
@@ -53,6 +69,9 @@ export const buzzin = (msg, room, ws) => {
         body: { state: 'buzzed-prelim', ranks: room.ranks }
       }, null);
       setTimeout(() => {
+        if (room.state === 'buzzed-prelim') {
+          return { type: 'silent' , action: null, body: {} };
+        }
         // STATE 3: show final results
         room.state = 'buzzed-resolved';
         room.broadcast({
@@ -60,16 +79,29 @@ export const buzzin = (msg, room, ws) => {
           action: 'STATE_CHANGE',
           body: { state: 'buzzed-resolved', ranks: room.ranks },
         }, null);
-      }, 600);
+      }, 10000);
     }, 360);
   } else if (room.state === 'buzzed-prelim' || room.state === 'buzzed-waiting') {
     const added = room.addRank(name, timestamp);
     if (added) {
-      room.broadcast({
-        type: 'broadcast',
-        action: 'NEW_RANKS',
-        body: { ranks: room.ranks }
-      }, null)
+      if (room.ranks.length === room.numPlayers) {
+        // jump straight to the end, this is the last result.
+        room.state = 'buzzed-resolved';
+        room.broadcast({
+          type: 'broadcast',
+          action: 'STATE_CHANGE',
+          body: {
+            state: 'buzzed-resolved', ranks: room.ranks,
+          }
+        }, null)
+        return { type: 'silent' , action: null, body: {} };
+      } else {
+        room.broadcast({
+          type: 'broadcast',
+          action: 'NEW_RANKS',
+          body: { ranks: room.ranks }
+        }, null)
+      }
     }
   }
     // discard
