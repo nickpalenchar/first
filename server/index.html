@@ -8,12 +8,26 @@
   src="https://code.jquery.com/jquery-3.7.1.slim.min.js"
   integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8="
   crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+
 </head>
 <body>
-  <div id="numPlayers" contenteditable="" style="display: inline-block;"></div>
-  <div id="name" contenteditable="" style="display: inline-block;">Player 1</div>
-  <div id="buzzin">
-    <button style="height: 400px; width: 400px; border-radius: 400px; font-size: 128px;" onclick="sendMessage()">☢️</button>
+  <div class="container-fluid bg-light">
+    <div id="numPlayers" contenteditable="" style="display: inline-block;"></div>
+    <div class="row justify-content-center align-items-center min-vh-100">
+      <div id="name" contenteditable="" style="display: inline-block;">Player 1</div>
+    </div>
+  </div>
+  <div id="buzzin" class="row justify-content-center align-items-center mim-vh-100">
+    <svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 120 120" onclick="sendMessage()">
+      <circle cx="60" cy="60" r="55" fill="#dd6347" stroke="#ffffff" stroke-width="5" />
+      <circle cx="60" cy="60" r="50" fill="rgba(0, 0, 0, 0.2)" />
+      <circle cx="60" cy="60" r="45" fill="#ff6347" />
+      <text x="50%" y="50%" alignment-baseline="middle" text-anchor="middle" fill="#ffffff" font-size="20" font-family="Arial" font-weight="bold">
+          PUSH
+      </text>
+  </svg>
+  
   </div>
   <div id="rankings" style="display: none;">
   </div>
