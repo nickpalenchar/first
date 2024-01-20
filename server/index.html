@@ -12,31 +12,34 @@
   crossorigin="anonymous"></script>
 </head>
 <body class="bg-gray-200">
-  <div id="status-bar" class="bg-blue-400 text-white p-4 container flex items-center">
-    <div class="mr-auto">
-      <div id="name" contenteditable class="mx-auto bg-white text-black">Player 1</div>
+  <div id="root" class="h-screen">
+    <div id="status-bar" class="bg-blue-400 text-white p-4 flex items-center">
+      <div class="mr-auto">
+        <div id="name" contenteditable class="mx-auto bg-white text-black">Player 1</div>
+      </div>
+      <div class="ml-auto">
+        <span>Online: </span><span id="numPlayers" class="font-bold">...</span>
+      </div>
     </div>
-    <div class="ml-auto">
-      <span>Online: </span><span id="numPlayers" class="font-bold">...</span>
+    <div class="mx-auto">
+      <div id="buzzin" class="flex justify-center items-center pt-20">
+        <svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 120 120" onclick="sendMessage()">
+          <circle cx="60" cy="60" r="55" fill="#dd6347" stroke="#ffffff" stroke-width="5" />
+          <circle cx="60" cy="60" r="50" fill="rgba(0, 0, 0, 0.2)" />
+          <circle cx="60" cy="60" r="45" fill="#ff6347" />
+          <text x="50%" y="50%" alignment-baseline="middle" text-anchor="middle" fill="#ffffff" font-size="20" font-family="Arial" font-weight="bold">
+              PRESS
+          </text>
+        </svg>
+      </div>
     </div>
+    <div id="rankings" class="hidden">
+      <!-- Add Tailwind styling for rankings if needed -->
+    </div>
+    <div id="restart" class="hidden"><button onclick="restart()" class="bg-blue-500 text-white py-2 px-4 rounded">Reset</button></div>
+    <div id="output" class="hidden"></div>
   </div>
-  <div class="container mx-auto">
-  </div>
-  <div id="buzzin" class="flex justify-center items-center min-h-screen">
-    <svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 120 120" onclick="sendMessage()">
-      <circle cx="60" cy="60" r="55" fill="#dd6347" stroke="#ffffff" stroke-width="5" />
-      <circle cx="60" cy="60" r="50" fill="rgba(0, 0, 0, 0.2)" />
-      <circle cx="60" cy="60" r="45" fill="#ff6347" />
-      <text x="50%" y="50%" alignment-baseline="middle" text-anchor="middle" fill="#ffffff" font-size="20" font-family="Arial" font-weight="bold">
-          PUSH
-      </text>
-    </svg>
-  </div>
-  <div id="rankings" class="hidden">
-    <!-- Add Tailwind styling for rankings if needed -->
-  </div>
-  <div id="restart" class="hidden"><button onclick="restart()" class="bg-blue-500 text-white py-2 px-4 rounded">Reset</button></div>
-  <div id="output"></div>
+
 
   <script>
     const name = window.localStorage.getItem('firstname');
