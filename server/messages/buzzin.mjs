@@ -44,8 +44,10 @@ export const buzzin = (msg, room, ws) => {
       action: 'STATE_CHANGE',
       body: { state: 'buzzed-waiting' }
     }, null);
+
+    const timeout1 = Date.now();
     setTimeout(() => {
-      if (room.state === 'buzzed-resolved') {
+      if (timeout1 < room._notBefore || room.state === 'buzzed-resolved') {
         return { type: 'silent' , action: null, body: {} };
       }
       console.log('ROOM?', { room });
@@ -68,8 +70,10 @@ export const buzzin = (msg, room, ws) => {
         action: 'STATE_CHANGE',
         body: { state: 'buzzed-prelim', ranks: room.ranks }
       }, null);
+
+      const timeout2 = Date.now();
       setTimeout(() => {
-        if (room.state === 'buzzed-prelim') {
+        if (timeout2 < room._notBefore || room.state !== 'buzzed-prelim') {
           return { type: 'silent' , action: null, body: {} };
         }
         // STATE 3: show final results
@@ -81,6 +85,7 @@ export const buzzin = (msg, room, ws) => {
         }, null);
       }, 10000);
     }, 360);
+
   } else if (room.state === 'buzzed-prelim' || room.state === 'buzzed-waiting') {
     const added = room.addRank(name, timestamp);
     if (added) {

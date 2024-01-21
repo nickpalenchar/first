@@ -26,12 +26,15 @@ export class Room {
   ranks;
   /** @type {Array<string>} */
   _namesRanked;
+  /** @type {number} timeouts that started before this time should be discarded. */
+  _notBefore;
 
   constructor(code) {
     this._code = code;
     this.state = 'standby';
     this.ranks = [];
     this._namesRanked = [];
+    this._notBefore = Date.now()
   }
   /** @returns {number} */
   get numPlayers() {
@@ -55,6 +58,7 @@ export class Room {
   reset() {
     this._namesRanked = [];
     this.ranks = [];
+    this._notBefore = Date.now();
   }
 
   /**
@@ -115,6 +119,7 @@ wss.on('connection', (ws, req) => {
     if ('error' in result) {
       log.error('websocket error:', result.error);
     }
+    log.info('Sending Message', result);
     ws.send(JSON.stringify(result));
     return;
   });

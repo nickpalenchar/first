@@ -63,7 +63,7 @@
     });
 
     socket.addEventListener('message', (event) => {
-      console.log('incomming message');
+      console.log('incomming message', JSON.parse(event.data));
       const outputDiv = document.getElementById('output');
       outputDiv.innerHTML = `Server says: ${event.data}`;
       const message = JSON.parse(event.data);
