@@ -12,6 +12,10 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
+const staticAssetPath = path.join(__dirname, 'client-scripts');
+
+app.use('/client-scripts', express.static(staticAssetPath));
+
 const clientMap = {};
 /** @type {Object<string, Room>} */
 const roomMap = {};
