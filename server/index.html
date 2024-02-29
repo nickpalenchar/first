@@ -11,9 +11,9 @@
   integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8="
   crossorigin="anonymous"></script>
 </head>
-<body class="bg-gray-200">
-  <div id="root" class="h-screen">
-    <div id="status-bar" class="bg-blue-400 text-white p-4 flex items-center">
+<body class="bg-gray-200 h-screen overflow-y-hidden">
+  <div id="root" class="flex-grow flex flex-col overflow-y-hidden">
+    <div id="status-bar" class="bg-blue-400 text-white p-4 flex items-center fixed w-full">
       <div class="mr-auto">
         <div id="name" contenteditable class="mx-auto bg-white text-black">Player 1</div>
       </div>
@@ -21,23 +21,26 @@
         <span>Online: </span><span id="numPlayers" class="font-bold">...</span>
       </div>
     </div>
-    <div class="mx-auto">
-      <div id="buzzin" class="flex justify-center items-center pt-20">
-        <svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 120 120" onclick="sendMessage()">
-          <circle cx="60" cy="60" r="55" fill="#dd6347" stroke="#ffffff" stroke-width="5" />
-          <circle cx="60" cy="60" r="50" fill="rgba(0, 0, 0, 0.2)" />
-          <circle cx="60" cy="60" r="45" fill="#ff6347" />
-          <text x="50%" y="50%" alignment-baseline="middle" text-anchor="middle" fill="#ffffff" font-size="20" font-family="Arial" font-weight="bold">
-              PRESS
-          </text>
-        </svg>
+      <div id="buzzin" class="flex justify-center items-center pt-100 fixed w-full mt-20">
+          <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="55" fill="#dd6347" stroke="#ffffff" stroke-width="5" />
+            <circle cx="60" cy="60" r="50" fill="rgba(0, 0, 0, 0.2)" />
+            <circle cx="60" cy="60" r="45" fill="#ff6347" />
+            <text x="50%" y="50%" alignment-baseline="middle" text-anchor="middle" fill="#ffffff" font-size="20" font-family="Arial" font-weight="bold">
+                PRESS
+            </text>
+          </svg>
       </div>
-    </div>
-    <div id="rankings" class="hidden">
+    <div id="rankings" class="hidden mt-20">
       <!-- Add Tailwind styling for rankings if needed -->
     </div>
     <div id="restart" class="hidden"><button onclick="restart()" class="bg-blue-500 text-white py-2 px-4 rounded">Reset</button></div>
     <div id="output" class="hidden"></div>
+    <br/><br/><br/><br/>
+    <div class="mt-auto">
+  
+      </button>
+    </div>
   </div>
 
   <script src="./client-scripts/fullScreenToggle.js"></script>
@@ -48,6 +51,7 @@
     const $rankings = $('#rankings');
     const $restart = $('#restart');
 
+    $buzzin.on('touchstart', sendMessage);
     if (!name) {
       const data = prompt("Enter Name:");
       window.localStorage.setItem('firstname', data);
@@ -57,7 +61,7 @@
     }
     const domain = new URL(window.location.href).hostname;
     const port = window.location.port ? ':' + window.location.port : '';
-    const socket = new WebSocket('ws://' + domain + port + window.location.pathname);
+    const socket = new WebSocket('wss://' + domain + port + window.location.pathname);
     socket.addEventListener('open', (event) => {
       console.log('Connected to WebSocket server');
     });
@@ -67,8 +71,8 @@
       const outputDiv = document.getElementById('output');
       outputDiv.innerHTML = `Server says: ${event.data}`;
       const message = JSON.parse(event.data);
-      if (!message.action) {
-        console.error('missing action');
+      if (!message.action && message.type !== 'silent') {
+        console.error('missing action', message);
         return;
       }
       if (message.action === 'numPlayers') {
@@ -125,8 +129,10 @@
           } else {
             offsetTime = `(${offsetTime} late)`;
           }
-          const renderedRank = $('<div>').html(`${final ? place + '. ': ''}${rank.name} <code>${offsetTime}</code>`);
-            board.append(renderedRank);
+          const renderedRank = $('<div>')
+            .html(`${final ? place + '. ': ''}${rank.name} <code>${offsetTime}</code>`)
+            .addClass('text-glow');
+          board.append(renderedRank);
         }
         $rankings.html(board);
     }
@@ -169,6 +175,20 @@
         selection.addRange(range);
       }
     }
+
+    //  wake lock hotfix
+    if ('wakeLock' in navigator) {
+      navigator.wakeLock.request('screen').then((wakeLock) => {
+        console.log('Screen wake lock activated');
+    
+        // You can release the wake lock when it's no longer needed
+        // For example, when the user closes the tab or navigates away
+        // wakeLock.release();
+      }).catch((err) => {
+        console.error('Failed to activate wake lock:', err);
+      });
+    }
+
   </script>
   <style>
     #name {
@@ -194,6 +214,18 @@
       /* Subsequent divs with decreasing font size, but no smaller after the 4th div */
       font-size: calc(20px - 2px * (n - 2));
   }
+  .text-glow {
+    animation: glow 1s ease-in-out infinite alternate;
+     }
+     @keyframes glow {
+      from{
+      text-shadow: 0 0 10px #0fa, 0 0 20px #0fa, 0 0 30px #0fa, 0 0 40px #0fa,0 0 50px #0fa;
+      font-size: 50px;
+    }
+    to {
+      font-size: 65px;
+      text-shadow: 0 0 60px #0fa, 0 0 70px #0fa;
+    }
   </style>
 </body>
 </html>

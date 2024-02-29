@@ -140,6 +140,8 @@ wss.on('connection', (ws, req) => {
   });
 });
 
-server.listen(3000, () => {
-  log.info('Server listening on port 3000');
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+
+server.listen(PORT, () => {
+  log.info(`Server listening on port ${PORT}`);
 });
