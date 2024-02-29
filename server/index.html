@@ -52,6 +52,7 @@
     const $restart = $('#restart');
 
     $buzzin.on('touchstart', sendMessage);
+    $buzzin.on('click', sendMessage);
     if (!name) {
       const data = prompt("Enter Name:");
       window.localStorage.setItem('firstname', data);
@@ -131,7 +132,9 @@
           }
           const renderedRank = $('<div>')
             .html(`${final ? place + '. ': ''}${rank.name} <code>${offsetTime}</code>`)
-            .addClass('text-glow');
+          if (offsetTime === '') {
+            renderedRank.addClass('text-glow');
+          }
           board.append(renderedRank);
         }
         $rankings.html(board);
@@ -215,6 +218,7 @@
       font-size: calc(20px - 2px * (n - 2));
   }
   .text-glow {
+    min-height: 100px;
     animation: glow 1s ease-in-out infinite alternate;
      }
      @keyframes glow {
@@ -226,6 +230,7 @@
       font-size: 65px;
       text-shadow: 0 0 60px #0fa, 0 0 70px #0fa;
     }
+  }
   </style>
 </body>
 </html>
