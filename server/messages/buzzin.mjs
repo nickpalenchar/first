@@ -30,7 +30,8 @@ const validateBuzzinBody = (msg) => {
  * @returns {import('../types/OutMessage.mjs').OutMessage}
  */ 
 export const buzzin = (msg, room, ws) => {
-  log.info('got buzzin', msg);
+  const logger = (level, msg, metaData = {}) => log[level](msg, {...metaData, roomState: room.state, roomCode: room._code});
+  logger('info', 'buzzin message received', { msg, roomState: room.state, roomCode: room._code });
   const validation = validateBuzzinBody(msg);
   const { name, timestamp } = validation;
 
