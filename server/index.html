@@ -185,9 +185,9 @@
     }
 
     //  wake lock hotfix
-    if ('wakeLock' in navigator) {
+    /*  if ('wakeLock' in navigator) {
       navigator.wakeLock.request('screen').then((wakeLock) => {
-        console.log('Screen wake lock activated');
+        console.log('Screen wake lock activated', { wakeLock });
     
         // You can release the wake lock when it's no longer needed
         // For example, when the user closes the tab or navigates away
@@ -195,7 +195,7 @@
       }).catch((err) => {
         console.error('Failed to activate wake lock:', err);
       });
-    }
+    }  */
 
   </script>
   <style>
