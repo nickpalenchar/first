@@ -8,7 +8,27 @@
   <script
   src="https://code.jquery.com/jquery-3.7.1.slim.min.js"
   integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8="
-  crossorigin="anonymous"></script>
+  crossorigin="anonymous">
+  // function for wakeLock toggle 
+  function handleToggleChange(event) {
+    const isChecked = event.target.checked;
+    const container = document.querySelector('[data-toggle-container]');
+    const thumb = document.querySelector('[data-toggle-thumb]');
+    const status = document.getElementById('toggleStatus');
+  
+    if (isChecked) {
+      container.classList.remove('bg-gray-300');
+      container.classList.add('bg-green-500');
+      thumb.classList.add('translate-x-6');
+      status.textContent = 'On';
+    } else {
+      container.classList.remove('bg-green-500');
+      container.classList.add('bg-gray-300');
+      thumb.classList.remove('translate-x-6');
+      status.textContent = 'Off';
+    }
+  }
+</script>
 </head>
 <body class="bg-gray-200 h-screen overflow-y-hidden">
   <div id="root" class="flex flex-col min-h-screen overflow-y-hidden">
@@ -40,17 +60,23 @@
     </div>
     
     <!-- Fullscreen button at the bottom -->
-    <div class="mt-auto flex justify-center p-4">
-      <button id="fullscreen-btn" class="bg-blue-500 text-white py-2 px-4 rounded">
-        Full Screen (recommended)
-      </button>
+    <div class="mt-auto flex items-center justify-center p-4">
+        <input
+          type="checkbox"
+          id="wakelock-checkbox"
+          class="h-5 w-5 text-green-500 focus:ring-green-500 border-gray-300 rounded"
+        />
+        
+        <label for="checkbox" class="text-sm font-medium text-gray-700 p-2">
+          Prevent device sleep <span class="text-xs text-slate-500">(recommended)</span>
+        </label>
     </div>
   </div>
 
-  <script src="./client-scripts/fullScreenToggle.js"></script>
+  <script src="./client-scripts/wakeLock.js"></script>
   <script defer>
     const name = window.localStorage.getItem('firstname');
-    fullScreenButton.init("fullscreen-btn")
+    wakeLockCheckbox.init("wakelock-checkbox");
 
     const $buzzin = $('#buzzin');
     const $rankings = $('#rankings');
@@ -183,19 +209,6 @@
         selection.addRange(range);
       }
     }
-
-    //  wake lock hotfix
-    /*  if ('wakeLock' in navigator) {
-      navigator.wakeLock.request('screen').then((wakeLock) => {
-        console.log('Screen wake lock activated', { wakeLock });
-    
-        // You can release the wake lock when it's no longer needed
-        // For example, when the user closes the tab or navigates away
-        // wakeLock.release();
-      }).catch((err) => {
-        console.error('Failed to activate wake lock:', err);
-      });
-    }  */
 
   </script>
   <style>
