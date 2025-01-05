@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>F1rst</title>
-  <!-- No need for jQuery and Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script
   src="https://code.jquery.com/jquery-3.7.1.slim.min.js"
@@ -12,7 +11,7 @@
   crossorigin="anonymous"></script>
 </head>
 <body class="bg-gray-200 h-screen overflow-y-hidden">
-  <div id="root" class="flex-grow flex flex-col overflow-y-hidden">
+  <div id="root" class="flex flex-col min-h-screen overflow-y-hidden">
     <div id="status-bar" class="bg-blue-400 text-white p-4 flex items-center fixed w-full">
       <div class="mr-auto">
         <div id="name" contenteditable class="mx-auto bg-white text-black">Player 1</div>
@@ -21,31 +20,37 @@
         <span>Online: </span><span id="numPlayers" class="font-bold">...</span>
       </div>
     </div>
-      <div id="buzzin" class="flex justify-center items-center pt-100 fixed w-full mt-20">
-          <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 120 120">
-            <circle cx="60" cy="60" r="55" fill="#dd6347" stroke="#ffffff" stroke-width="5" />
-            <circle cx="60" cy="60" r="50" fill="rgba(0, 0, 0, 0.2)" />
-            <circle cx="60" cy="60" r="45" fill="#ff6347" />
-            <text x="50%" y="50%" alignment-baseline="middle" text-anchor="middle" fill="#ffffff" font-size="20" font-family="Arial" font-weight="bold">
-                PRESS
-            </text>
-          </svg>
+    
+    <div class="flex-grow flex flex-col mt-20">
+      <div id="buzzin" class="flex justify-center items-center pt-20">
+        <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="55" fill="#dd6347" stroke="#ffffff" stroke-width="5" />
+          <circle cx="60" cy="60" r="50" fill="rgba(0, 0, 0, 0.2)" />
+          <circle cx="60" cy="60" r="45" fill="#ff6347" />
+          <text x="50%" y="50%" alignment-baseline="middle" text-anchor="middle" fill="#ffffff" font-size="20" font-family="Arial" font-weight="bold">
+            PRESS
+          </text>
+        </svg>
       </div>
-    <div id="rankings" class="hidden mt-20">
-      <!-- Add Tailwind styling for rankings if needed -->
+      <div id="rankings" class="hidden mt-20"></div>
+      <div id="restart" class="hidden">
+        <button onclick="restart()" class="bg-blue-500 text-white py-2 px-4 rounded">Reset</button>
+      </div>
+      <div id="output" class="hidden"></div>
     </div>
-    <div id="restart" class="hidden"><button onclick="restart()" class="bg-blue-500 text-white py-2 px-4 rounded">Reset</button></div>
-    <div id="output" class="hidden"></div>
-    <br/><br/><br/><br/>
-    <div class="mt-auto">
-  
+    
+    <!-- Fullscreen button at the bottom -->
+    <div class="mt-auto flex justify-center p-4">
+      <button id="fullscreen-btn" class="bg-blue-500 text-white py-2 px-4 rounded">
+        Full Screen (recommended)
       </button>
     </div>
   </div>
 
   <script src="./client-scripts/fullScreenToggle.js"></script>
-  <script>
+  <script defer>
     const name = window.localStorage.getItem('firstname');
+    fullScreenButton.init("fullscreen-btn")
 
     const $buzzin = $('#buzzin');
     const $rankings = $('#rankings');

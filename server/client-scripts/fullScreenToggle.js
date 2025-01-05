@@ -43,8 +43,11 @@ window.fullScreenButton = {
     fullscreenButton.addEventListener("click", function() {
       if (document.fullscreenElement) {
         exitFullscreen();
+        this.textContent = 'Enter Full Screen'
       } else {
         enterFullscreen();
+        console.log('thi,', this)
+        this.textContent = 'Exit Full Screen'
       }
     });
 
